@@ -1,3 +1,39 @@
+Version 3.2.2 released 2024-03-21
+
+* Use single quotes around 'maybe' atom for compatibility with OTP 27
+  https://github.com/mochi/mochiweb/pull/262
+* Update Erlang CI images
+  https://github.com/mochi/mochiweb/pull/261
+
+Version 3.2.1 released 2023-09-22
+
+* mochinum:digits/1: fix handling of -0.0 for OTP-26.1/27.0
+  https://github.com/mochi/mochiweb/pull/260
+
+Version 3.2.0 released 2023-08-31
+
+* Add new mochiweb_request:is_closed/1 function
+  https://github.com/mochi/mochiweb/pull/258
+
+Version 3.1.2 released 2023-04-20
+
+* Fix rebar edoc settings
+  https://github.com/mochi/mochiweb/pull/257
+
+Version 3.1.1 released 2022-10-11
+
+* OTP 25 added to test matrix
+  https://github.com/mochi/mochiweb/pull/251
+* Fix for chunk length parsing edge case
+  https://github.com/mochi/mochiweb/pull/249
+
+Version 3.1.0 released 2022-08-13
+
+* Leading and trailing whitespace in header values are now trimmed
+  for better RFC 7230 compliance.
+  https://github.com/mochi/mochiweb/pull/247
+  https://github.com/mochi/mochiweb/pull/248
+
 Version 3.0.0 released 2022-05-09
 
 * rebar3 is now the preferred build tool (finally)

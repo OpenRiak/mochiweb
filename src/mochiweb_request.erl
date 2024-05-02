@@ -59,6 +59,8 @@
 -export([accepted_content_types/2,
 	 accepts_content_type/2]).
 
+-export([is_closed/1]).
+
 -define(SAVE_QS, mochiweb_request_qs).
 
 -define(SAVE_PATH, mochiweb_request_path).
@@ -710,7 +712,7 @@ parse_post({?MODULE,
 
 %% @spec stream_chunked_body(integer(), fun(), term(), request()) -> term()
 %% @doc The function is called for each chunk.
-%%      Used internally by read_chunked_body.
+%%      Used internally by stream_body.
 stream_chunked_body(MaxChunkSize, Fun, FunState,
 		    {?MODULE,
 		     [_Socket, _Opts, _Method, _RawPath, _Version,
@@ -769,7 +771,7 @@ read_chunk_length({?MODULE,
 								     [{packet,
 								       raw}])),
 	  Splitter = fun (C) ->
-			     C =/= $\r andalso C =/= $\n andalso C =/= $\n
+			     C =/= $\r andalso C =/= $\n andalso C =/= $\s
 		     end,
 	  {Hex, _Rest} = lists:splitwith(Splitter,
 					 binary_to_list(Header)),
@@ -1145,11 +1147,12 @@ accept_header({?MODULE,
       Value -> Value
     end.
 
-%%
-%% Tests
-%%
--ifdef(TEST).
-
--include_lib("eunit/include/eunit.hrl").
-
--endif.
+%% @spec is_closed(request()) -> true | false | undefined
+%% @doc Check if a request connection is closing or already closed. This may be
+%% useful when processing long running request callbacks, when the client
+%% disconnects after a short timeout. This function works on Linux, NetBSD,
+%% OpenBSD, FreeBSD and MacOS. On other operating systems, like Windows for
+%% instance, it will return undefined.
+is_closed({?MODULE,
+        [Socket, _Opts, _Method, _RawPath, _Version, _Headers]}) ->
+    mochiweb_socket:is_closed(Socket).
