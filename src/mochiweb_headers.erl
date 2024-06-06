@@ -30,7 +30,7 @@
 -export([from_binary/1]).
 
 %% @type headers().
-%% @type key() = atom() | binary() | string().
+%% @type key() = atom() | binary() | string() | {normalised, string()}.
 %% @type value() = atom() | binary() | string() | integer().
 
 %% @spec empty() -> headers()
@@ -268,6 +268,8 @@ merge("set-cookie", V1, V0) ->
 merge(_, V1, V0) ->
     V0 ++ ", " ++ V1.
 
+normalize({normalised, K}) when is_list(K) ->
+    K;
 normalize(K) when is_list(K) ->
     string:to_lower(K);
 normalize(K) when is_atom(K) ->
