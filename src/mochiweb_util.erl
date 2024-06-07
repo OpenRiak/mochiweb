@@ -77,8 +77,8 @@ partition2(_S, _Sep) ->
 safe_relative_path("/" ++ _) ->
     undefined;
 safe_relative_path(P) ->
-    case string:chr(P, $\\) of
-        0 ->
+    case string:find(P, "\\") of
+        nomatch ->
            safe_relative_path(P, []);
         _ ->
            undefined
@@ -89,7 +89,7 @@ safe_relative_path("", Acc) ->
         [] ->
             "";
         _ ->
-            string:join(lists:reverse(Acc), "/")
+            lists:concat(lists:join("/", lists:reverse(Acc)))
     end;
 safe_relative_path(P, Acc) ->
     case partition(P, "/") of
@@ -125,7 +125,7 @@ cmd(Argv) ->
 %% @spec cmd_string([string()]) -> string()
 %% @doc Create a shell quoted command string from a list of arguments.
 cmd_string(Argv) ->
-    string:join([shell_quote(X) || X <- Argv], " ").
+    lists:concat(lists:join(" ", [shell_quote(X) || X <- Argv])).
 
 %% @spec cmd_status([string()]) -> {ExitStatus::integer(), Stdout::binary()}
 %% @doc Accumulate the output and exit status from the given application,
@@ -201,7 +201,7 @@ urlencode(Props) ->
               fun ({K, V}, Acc) ->
                       [quote_plus(K) ++ "=" ++ quote_plus(V) | Acc]
               end, [], Props),
-    string:join(Pairs, "&").
+    lists:concat(lists:join("&", Pairs)).
 
 %% @spec parse_qs(string() | binary()) -> [{Key, Value}]
 %% @doc Parse a query string or application/x-www-form-urlencoded.
@@ -303,7 +303,7 @@ urlsplit_scheme([C | Rest], Acc) when ((C >= $a andalso C =< $z) orelse
                                        C =:= $.) ->
     urlsplit_scheme(Rest, [C | Acc]);
 urlsplit_scheme([$: | Rest], Acc=[_ | _]) ->
-    {string:to_lower(lists:reverse(Acc)), Rest};
+    {string:lowercase(lists:reverse(Acc)), Rest};
 urlsplit_scheme(_Rest, _Acc) ->
     no_scheme.
 
@@ -402,7 +402,7 @@ guess_mime(File) ->
 parse_header(String) ->
     %% TODO: This is exactly as broken as Python's cgi module.
     %%       Should parse properly like mochiweb_cookies.
-    [Type | Parts] = [string:strip(S) || S <- string:tokens(String, ";")],
+    [Type | Parts] = [string:trim(S) || S <- string:lexemes(String, ";")],
     F = fun (S, Acc) ->
                 case lists:splitwith(fun (C) -> C =/= $= end, S) of
                     {"", _} ->
@@ -412,12 +412,11 @@ parse_header(String) ->
                         %% Skip anything with no value
                         Acc;
                     {Name, [$\= | Value]} ->
-                        [{string:to_lower(string:strip(Name)),
-                          unquote_header(string:strip(Value))} | Acc]
+                        [{string:lowercase(string:trim(Name)),
+                          unquote_header(string:trim(Value))} | Acc]
                 end
         end,
-    {string:to_lower(Type),
-     lists:foldr(F, [], Parts)}.
+    {string:lowercase(Type), lists:foldr(F, [], Parts)}.
 
 unquote_header("\"" ++ Rest) ->
     unquote_header(Rest, []);
@@ -480,12 +479,15 @@ parse_qvalues(QValuesStr) ->
     try
         lists:map(
             fun(Pair) ->
-                [Type | Params] = string:tokens(Pair, ";"),
+                [Type | Params] = string:lexemes(Pair, ";"),
                 NormParams = normalize_media_params(Params),
                 {Q, NonQParams} = extract_q(NormParams),
-                {string:join([string:strip(Type) | NonQParams], ";"), Q}
+                {lists:concat(
+                    lists:join(";", [string:trim(Type) | NonQParams])
+                ),
+                Q}
             end,
-            string:tokens(string:to_lower(QValuesStr), ",")
+            string:lexemes(string:lowercase(QValuesStr), ",")
         )
     catch
         _Type:_Error ->

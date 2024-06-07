@@ -314,7 +314,7 @@ tokens(B, S=#decoder{offset=O}, Acc) ->
     end.
 
 parse_flag({start_tag, B, _, false}) ->
-    case string:to_lower(binary_to_list(B)) of
+    case string:lowercase(binary_to_list(B)) of
         "script" ->
             script;
         "textarea" ->
@@ -403,7 +403,7 @@ norm({Tag, Attrs}) ->
 norm(Tag) when is_binary(Tag) ->
     Tag;
 norm(Tag) ->
-    list_to_binary(string:to_lower(Tag)).
+    list_to_binary(string:lowercase(Tag)).
 
 stack(T1={TN, _, _}, Stack=[{TN, _, _} | _Rest])
   when TN =:= <<"li">> orelse TN =:= <<"option">> ->
@@ -594,7 +594,7 @@ tokenize_literal(Bin, S=#decoder{offset=O}, Acc) ->
                                               orelse C =:= $=) ->
             tokenize_literal(Bin, ?INC_COL(S), [C | Acc]);
         _ ->
-            {iolist_to_binary(string:to_lower(lists:reverse(Acc))), S}
+            {iolist_to_binary(string:lowercase(lists:reverse(Acc))), S}
     end.
 
 raw_qgt(Bin, S=#decoder{offset=O}) ->

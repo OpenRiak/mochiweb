@@ -314,7 +314,7 @@ convert2(Arg, #conversion{ctype = oct}) ->
 convert2(Arg, #conversion{ctype = upper_hex}) ->
     erlang:integer_to_list(Arg, 16);
 convert2(Arg, #conversion{ctype = hex}) ->
-    string:to_lower(erlang:integer_to_list(Arg, 16));
+    string:lowercase(erlang:integer_to_list(Arg, 16));
 convert2(Arg, #conversion{ctype = char})
     when Arg < 128 ->
     [Arg];

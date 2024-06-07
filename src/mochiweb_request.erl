@@ -172,7 +172,7 @@ get(peer,
 	  case get_header_value("x-forwarded-for", THIS) of
 	    undefined -> inet_parse:ntoa(Addr);
 	    Hosts ->
-		string:strip(lists:last(string:tokens(Hosts, ",")))
+		string:trim(lists:last(string:lexemes(Hosts, ",")))
 	  end;
       %% Copied this syntax from webmachine contributor Steve Vinoski
       {ok, {Addr = {172, Second, _, _}, _Port}}
@@ -180,7 +180,7 @@ get(peer,
 	  case get_header_value("x-forwarded-for", THIS) of
 	    undefined -> inet_parse:ntoa(Addr);
 	    Hosts ->
-		string:strip(lists:last(string:tokens(Hosts, ",")))
+		string:trim(lists:last(string:lexemes(Hosts, ",")))
 	  end;
       %% According to RFC 6598, contributor Gerald Xv
       {ok, {Addr = {100, Second, _, _}, _Port}}
@@ -188,19 +188,19 @@ get(peer,
 	  case get_header_value("x-forwarded-for", THIS) of
 	    undefined -> inet_parse:ntoa(Addr);
 	    Hosts ->
-		string:strip(lists:last(string:tokens(Hosts, ",")))
+		string:trim(lists:last(string:lexemes(Hosts, ",")))
 	  end;
       {ok, {Addr = {192, 168, _, _}, _Port}} ->
 	  case get_header_value("x-forwarded-for", THIS) of
 	    undefined -> inet_parse:ntoa(Addr);
 	    Hosts ->
-		string:strip(lists:last(string:tokens(Hosts, ",")))
+		string:trim(lists:last(string:lexemes(Hosts, ",")))
 	  end;
       {ok, {{127, 0, 0, 1}, _Port}} ->
 	  case get_header_value("x-forwarded-for", THIS) of
 	    undefined -> "127.0.0.1";
 	    Hosts ->
-		string:strip(lists:last(string:tokens(Hosts, ",")))
+		string:trim(lists:last(string:lexemes(Hosts, ",")))
 	  end;
       {ok, {Addr, _Port}} -> inet_parse:ntoa(Addr);
       {error, enotconn = Error} -> exit({shutdown, Error})
@@ -357,7 +357,7 @@ stream_body(MaxChunkSize, ChunkFun, FunState,
 		THIS) ->
     Expect = case get_header_value("expect", THIS) of
 	       undefined -> undefined;
-	       Value when is_list(Value) -> string:to_lower(Value)
+	       Value when is_list(Value) -> string:lowercase(Value)
 	     end,
     case Expect of
       "100-continue" ->
@@ -631,7 +631,7 @@ should_close({?MODULE,
 
 is_close("close") -> true;
 is_close(S = [_C, _L, _O, _S, _E]) ->
-    string:to_lower(S) =:= "close";
+    string:lowercase(S) =:= "close";
 is_close(_) -> false.
 
 %% @spec cleanup(request()) -> ok
@@ -877,7 +877,7 @@ maybe_redirect(RelPath, FullPath, ExtraHeaders,
 		[_Socket, _Opts, _Method, _RawPath, _Version,
 		 Headers]} =
 		   THIS) ->
-    case string:right(RelPath, 1) of
+    case string:pad(RelPath, 1) of
       "/" ->
 	  maybe_serve_file(directory_index(FullPath),
 			   ExtraHeaders, THIS);
@@ -1052,7 +1052,7 @@ accepts_content_type(ContentType1,
     case mochiweb_util:parse_qvalues(AcceptHeader) of
       invalid_qvalue_string -> bad_accept_header;
       QList ->
-	  [MainType, _SubType] = string:tokens(ContentType, "/"),
+	  [MainType, _SubType] = string:lexemes(ContentType, "/"),
 	  SuperType = MainType ++ "/*",
 	  lists:any(fun ({"*/*", Q}) when Q > 0.0 -> true;
 			({Type, Q}) when Q > 0.0 ->
@@ -1105,7 +1105,7 @@ accepted_content_types(Types1,
 				       case proplists:get_value(T, QList) of
 					 undefined ->
 					     [MainType, _SubType] =
-						 string:tokens(T, "/"),
+						 string:lexemes(T, "/"),
 					     case proplists:get_value(MainType
 									++ "/*",
 								      QList)
