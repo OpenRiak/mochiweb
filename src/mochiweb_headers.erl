@@ -174,7 +174,7 @@ lookup(K, T) ->
 %% @doc Insert the pair into the headers if it does not already exist.
 default(K, V, T) ->
     K1 = normalize(K),
-    V1 = any_to_list(V),
+    V1 = trim_leading_and_trailing_ws(any_to_list(V)),
     try gb_trees:insert(K1, {K, V1}, T)
     catch
         error:{key_exists, _} ->
@@ -185,7 +185,7 @@ default(K, V, T) ->
 %% @doc Insert the pair into the headers, replacing any pre-existing key.
 enter(K, V, T) ->
     K1 = normalize(K),
-    V1 = any_to_list(V),
+    V1 = trim_leading_and_trailing_ws(any_to_list(V)),
     gb_trees:enter(K1, {K, V1}, T).
 
 %% @spec insert(key(), value(), headers()) -> headers()
@@ -193,7 +193,7 @@ enter(K, V, T) ->
 %%      A merge is done with Value = V0 ++ ", " ++ V1.
 insert(K, V, T) ->
     K1 = normalize(K),
-    V1 = any_to_list(V),
+    V1 = trim_leading_and_trailing_ws(any_to_list(V)),
     try gb_trees:insert(K1, {K, V1}, T)
     catch
         error:{key_exists, _} ->
@@ -214,6 +214,9 @@ tokenize_header_value(undefined) ->
     undefined;
 tokenize_header_value(V) ->
     reversed_tokens(trim_and_reverse(V, false), [], []).
+
+trim_leading_and_trailing_ws(S) ->
+    trim_and_reverse(trim_and_reverse(S, false), false).
 
 trim_and_reverse([S | Rest], Reversed) when S=:=$ ; S=:=$\n; S=:=$\t ->
     trim_and_reverse(Rest, Reversed);
@@ -242,7 +245,7 @@ reversed_tokens([C | Rest], Token, Acc) when C=:=$ ;C=:=$\n;C=:=$\t;C=:=$, ->
 reversed_tokens([C | Rest], Token, Acc) ->
     reversed_tokens(Rest, [C | Token], Acc);
 reversed_tokens(_, _, _) ->
-    undefeined.
+    undefined.
 
 extract_quoted_string([], _Acc) ->
     undefined;
@@ -363,6 +366,13 @@ set_cookie_test() ->
        [{"set-cookie", "foo"}, {"set-cookie", "bar"}, {"set-cookie", "baz"}],
        to_list(H)),
     ok.
+
+whitespace_headers_test() ->
+    %% Check RFC 7230 whitespace compliance
+    H = ?MODULE:make([{"X-Auth-Roles", "      test, test2,test3,       test4,    test5     ,        test6     "}]),
+    ?assertEqual(
+       [{"X-Auth-Roles", "test, test2,test3,       test4,    test5     ,        test6"}],
+       to_list(H)).
 
 headers_test() ->
     H = ?MODULE:make([{hdr, foo}, {"Hdr", "bar"}, {'Hdr', 2}]),
