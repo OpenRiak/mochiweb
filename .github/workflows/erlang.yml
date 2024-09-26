@@ -12,16 +12,12 @@ on:
       - nhse-develop-3.2
       - nhse-develop-3.4
 
-
 jobs:
 
   build:
 
     name: Test on ${{ matrix.os }} with OTP ${{ matrix.otp }}
     runs-on: ${{ matrix.os }}
-
-    container:
-      image: erlang:${{matrix.otp}}
 
     strategy:
       fail-fast: false
@@ -30,7 +26,12 @@ jobs:
         os: [ubuntu-latest]
 
     steps:
+      - uses: lukka/get-cmake@latest
       - uses: actions/checkout@v4
+      - name: Install Erlang/OTP
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.otp }}
       - name: Compile
         run: ./rebar3 compile
       - name: Run xref and dialyzer
