@@ -162,6 +162,17 @@ gen_hmac(ExpirationTime, Data, SessionKey, Key) ->
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 
+-if(?OTP_RELEASE >= 25).
+-define(SSL_TEST_OK, true).
+-else.
+-ifdef(GITHUBEXCLUDE).
+-define(SSL_TEST_OK, false).
+-else.
+-define(SSL_TEST_OK, true).
+-endif.
+-endif.
+
+-if(?SSL_TEST_OK).
 generate_check_session_cookie_test_() ->
     {setup,
      fun setup_server_key/0,
@@ -226,4 +237,6 @@ generate_check_session_cookie([ServerKey, TS]) ->
           generate_session_data(TSPast, "bob", Id,ServerKey),
           TS, Id, ServerKey))
     ].
+-endif.
+
 -endif.
