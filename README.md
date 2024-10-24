@@ -1,5 +1,7 @@
 MochiWeb is an Erlang library for building lightweight HTTP servers.
 
+![Mochiweb OpenRiak Status](https://github.com/OpenRiak/mochiweb/actions/workflows/erlang.yml/badge.svg?branch=openriak-3.2)
+
 The latest version of MochiWeb is available at https://github.com/mochi/mochiweb
 
 The mailing list for MochiWeb is at https://groups.google.com/group/mochiweb/
