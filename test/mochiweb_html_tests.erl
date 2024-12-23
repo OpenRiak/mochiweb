@@ -232,7 +232,7 @@ tokenize_attributes_test() ->
        {<<"foo">>,
         [{<<"bar">>, <<"b\"az">>},
          {<<"wibble">>, <<"wibble">>},
-         {<<"taco", 16#c2, 16#a9>>, <<"bell">>},
+         {<<"taco©">>, <<"bell">>},
          {<<"quux">>, <<"quux">>}],
         []},
        mochiweb_html:parse(<<"<foo bar=\"b&quot;az\" wibble taco&copy;=bell quux">>)),

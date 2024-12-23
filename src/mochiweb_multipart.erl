@@ -204,7 +204,7 @@ split_header(Line) ->
 						   C =/= $:
 					   end,
 					   binary_to_list(Line)),
-    {string:to_lower(string:strip(Name)),
+    {string:lowercase(string:trim(Name)),
      mochiweb_util:parse_header(Value)}.
 
 read_chunk({ReqM, _} = Req, Length) when Length > 0 ->
@@ -590,7 +590,7 @@ parse_partial_body_boundary_https_test() ->
     parse_partial_body_boundary(ssl).
 
 parse_partial_body_boundary(Transport) ->
-    Boundary = string:copies("$", 2048),
+    Boundary = lists:concat(lists:duplicate(2048, "$")),
     ContentType = "multipart/form-data; boundary=" ++
 		    Boundary,
     ?assertEqual(Boundary, (get_boundary(ContentType))),
@@ -650,7 +650,7 @@ parse_large_header(Transport) ->
 				    ++ "filename=\"file1.txt\"",
 				  "Content-Type: text/plain",
 				  "x-large-header: " ++
-				    string:copies("%", 4096),
+				    lists:concat(lists:duplicate(4096, "%")),
 				  "", "... contents of file1.txt ...",
 				  "--AaB03x--", ""],
 				 "\r\n"),
@@ -664,7 +664,7 @@ parse_large_header(Transport) ->
 		 {"form-data",
 		  [{"name", "files"}, {"filename", "file1.txt"}]}},
 		{"content-type", {"text/plain", []}},
-		{"x-large-header", {string:copies("%", 4096), []}}]},
+		{"x-large-header", {lists:concat(lists:duplicate(4096, "%")), []}}]},
 	      {body, <<"... contents of file1.txt ...">>}, body_end,
 	      eof],
     TestCallback = fun (Next) -> test_callback(Next, Expect)
@@ -793,7 +793,7 @@ flash_parse2(Transport) ->
 	"3GI3Ij5Ef1ae0KM7Ij5ei4Ij5",
     "----------ei4GI3GI3Ij5Ef1ae0KM7Ij5ei4Ij5" =
 	get_boundary(ContentType),
-    Chunk = iolist_to_binary(string:copies("%", 4096)),
+    Chunk = iolist_to_binary(lists:concat(lists:duplicate(4096, "%"))),
     BinContent =
 	<<"------------ei4GI3GI3Ij5Ef1ae0KM7Ij5ei4Ij5\r\n"
 	  "Content-Disposition: form-data; name=\"Filena"

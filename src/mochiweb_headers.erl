@@ -26,11 +26,11 @@
 -export([empty/0, from_list/1, insert/3, enter/3, get_value/2, lookup/2]).
 -export([delete_any/2, get_primary_value/2, get_combined_value/2]).
 -export([default/3, enter_from_list/2, default_from_list/2]).
--export([to_list/1, make/1]).
+-export([to_list/1, to_normalised_list/1, make/1]).
 -export([from_binary/1]).
 
 %% @type headers().
-%% @type key() = atom() | binary() | string().
+%% @type key() = atom() | binary() | string() | {normalised, string()}.
 %% @type value() = atom() | binary() | string() | integer().
 
 %% @spec empty() -> headers()
@@ -106,6 +106,19 @@ to_list(T) ->
                 [Pair | Acc]
         end,
     lists:reverse(lists:foldl(F, [], gb_trees:values(T))).
+
+%% @spec spec to_normalised_list(headers()) -> [{string(), string()}].
+%% @doc As to_list but all keys are the lowercase (normalised) versions
+to_normalised_list(T) ->
+    F = 
+        fun ({NK, {_K, {array, L}}}, Acc) ->
+            L1 = lists:reverse(L),
+            lists:foldl(fun (V, Acc1) -> [{NK, V} | Acc1] end, Acc, L1);
+        ({NK, {_K, V}}, Acc) ->
+            [{NK, V} | Acc]
+        end,
+    lists:foldl(F, [], gb_trees:to_list(T)).
+    
 
 %% @spec get_value(key(), headers()) -> string() | undefined
 %% @doc Return the value of the given header using a case insensitive search.
@@ -268,8 +281,10 @@ merge("set-cookie", V1, V0) ->
 merge(_, V1, V0) ->
     V0 ++ ", " ++ V1.
 
+normalize({normalised, K}) when is_list(K) ->
+    K;
 normalize(K) when is_list(K) ->
-    string:to_lower(K);
+    string:lowercase(K);
 normalize(K) when is_atom(K) ->
     normalize(atom_to_list(K));
 normalize(K) when is_binary(K) ->
