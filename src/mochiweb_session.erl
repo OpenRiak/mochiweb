@@ -179,7 +179,7 @@ generate_check_session_cookie_test_() ->
      fun generate_check_session_cookie/1}.
 
 setup_server_key() ->
-    crypto:start(),
+    application:ensure_started(crypto),
     ["adfasdfasfs",30000].
 
 generate_check_session_cookie([ServerKey, TS]) ->
