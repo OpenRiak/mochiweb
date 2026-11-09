@@ -1,11 +1,10 @@
-REBAR?=./rebar3
+REBAR ?= ../riak/rebar3
 
 .PHONY: all edoc test clean build
 
 all: build
 
 build:
-	@$(REBAR) get-deps # rebar2 compatibility, it's no-op on rebar3
 	@$(REBAR) compile
 
 test: build
